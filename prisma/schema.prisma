@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  S1
+  S2
+  S3
+  S4
+}
+
+model User {
+  id      String      @id @default(uuid())
+  name    String      @unique
+  Changes LogCommit[]
+  Info    Info[]
+  InfoTwo InfoTwo[]
+}
+
+model Info {
+  id      String    @id @default(uuid())
+  status  Status
+  v1      Int
+  v2      String
+  owner   User      @relation(fields: [ownerId], references: [id])
+  ownerId String
+  InfoTwo InfoTwo[]
+}
+
+model InfoTwo {
+  id     String @id @default(uuid())
+  status Status
+
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId String
+
+  attached   Info   @relation(fields: [attachedId], references: [id])
+  attachedId String
+}
+
+model LogCommit {
+  id             Int       @id
+  createdAt      DateTime  @default(now())
+  diffs          LogDiff[]
+  modifiedEntity String
+
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId String
+}
+
+enum DiffType {
+  create
+  update
+  delete
+}
+
+model LogDiff {
+  id       Int      @id
+  table    String
+  column   String
+  was      String?
+  is       String?
+  diffType DiffType
+
+  commit   LogCommit @relation(fields: [commitId], references: [id])
+  commitId Int
+}

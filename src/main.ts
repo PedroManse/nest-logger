@@ -1,5 +1,5 @@
 import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
+import { AppModule } from "./module";
 import { LoggingInterceptor } from "./logger.interceptor";
 
 async function bootstrap() {
