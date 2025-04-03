@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma';
 import { User, Info, InfoTwo, LogDiff, LogCommit, Status } from '@prisma/client';
 import * as dto from './dto';
-type UserId = string;
 
 @Injectable()
 export class AppService {
@@ -29,7 +28,22 @@ export class AppService {
 		})
 	}
 
-	createBigInfo(
+	updateInfo(
+		{ id, status, ownerId, v1, v2	}: dto.updateInfoDto
+	): Promise<Info> {
+		return this.prisma.info.update({
+			where: { id },
+			data: {
+				status,
+				ownerId,
+				v1,
+				v2,
+			}
+		})
+
+	}
+
+	createInfoTwo(
 		{ status, ownerId, attachedId }: dto.createInfoTwoDto
 	): Promise<InfoTwo> {
 		return this.prisma.infoTwo.create({
@@ -39,5 +53,30 @@ export class AppService {
 				attachedId,
 			}
 		})
+	}
+
+	updateInfoTwo(
+		{ id, status, ownerId, attachedId }: dto.updateInfoTwoDto
+	): Promise<InfoTwo> {
+		return this.prisma.infoTwo.update({
+			where: {id},
+			data: {
+				status,
+				ownerId,
+				attachedId,
+			}
+		})
+	}
+
+	deleteInfo(
+		where: dto.deleteInfo
+	): Promise<Info> {
+		return this.prisma.info.delete({where})
+	}
+
+	deleteInfoTwo(
+		where: dto.deleteInfoTwo
+	): Promise<InfoTwo> {
+		return this.prisma.infoTwo.delete({where})
 	}
 }

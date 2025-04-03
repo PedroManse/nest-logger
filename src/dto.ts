@@ -30,3 +30,51 @@ export class createInfoTwoDto {
 	@d.IsUUID()
 	attachedId: string
 }
+
+export class updateInfoDto {
+	@d.IsUUID()
+	id: string;
+
+	@d.IsOptional()
+	@d.IsEnum(Status)
+  status: Status;
+
+	@d.IsOptional()
+	@d.IsUUID()
+	ownerId: string
+
+	@d.IsOptional()
+	@d.IsNumber()
+	v1: number;
+
+	@d.IsOptional()
+	@d.IsString()
+	v2: string;
+}
+
+export class updateInfoTwoDto {
+	@d.IsUUID()
+	id: string;
+
+	@d.IsOptional()
+	@d.IsEnum(Status)
+  status: Status;
+
+	@d.IsOptional()
+	@d.IsUUID()
+	ownerId: string
+
+	@d.IsOptional()
+	@d.IsUUID()
+	attachedId: string
+}
+
+export class deleteInfo {
+	@d.IsUUID()
+	id: string;
+}
+
+export class deleteInfoTwo {
+	@d.IsUUID()
+	id: string;
+}
