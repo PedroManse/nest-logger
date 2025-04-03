@@ -7,13 +7,15 @@ import {
 import { Request, Response } from "express";
 import { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
+import { Req } from "./user";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		const req: Request = context.switchToHttp().getRequest();
+		const req: Req = context.switchToHttp().getRequest();
 		const rsp: Response = context.switchToHttp().getResponse();
 		console.log("Before req");
+		console.log(`By: ${req.user}`);
 		const now = Date.now();
 		function after() {
 			console.log(`After req | executed in ${Date.now() - now}`);

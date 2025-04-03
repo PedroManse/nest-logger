@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext, HttpException } from '@nestjs/common';
 import { Request } from 'express';
-type Req = Request & { user?: string };
+export type Req = Request & { user?: string };
 
 export const User = createParamDecorator(
 	(must: "must" | void, ctx: ExecutionContext) => {

@@ -18,13 +18,15 @@ export class AppController {
 		@User("must") user: string,
 		@Body() info: dto.createInfoDto
 	): Promise<Info> {
-		console.log(user);
 		return this.service.createInfo(info, user);
 	}
 
 	@Post("infotwo")
-	createInfoTwo(@Body() info: dto.createInfoTwoDto): Promise<InfoTwo> {
-		return this.service.createInfoTwo(info);
+	createInfoTwo(
+		@User("must") user: string,
+		@Body() info: dto.createInfoTwoDto,
+	): Promise<InfoTwo> {
+		return this.service.createInfoTwo(info, user);
 	}
 
 	@Put("info")
