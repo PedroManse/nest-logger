@@ -4,16 +4,19 @@ import {
 	ExecutionContext,
 	CallHandler,
 } from "@nestjs/common";
-import { Request, Response } from "express";
+import { Response } from "express";
 import { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
 import { Req } from "./user";
+import { throws } from "assert";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		const req: Req = context.switchToHttp().getRequest();
-		const rsp: Response = context.switchToHttp().getResponse();
+		const requrl = makeReqUrl(req.url, req.method);
+		console.log(requrl);
+		const _: Response = context.switchToHttp().getResponse();
 		console.log("Before req");
 		console.log(`By: ${req.user}`);
 		const now = Date.now();
@@ -25,15 +28,46 @@ export class LoggingInterceptor implements NestInterceptor {
 	}
 }
 
-type CommitRequest<T> = Omit<CommitContext<T>, "commitId">;
+function makeReqUrl(url: string, method: string): RequestUrl {
+	const joint = `${method}${url}`;
+	if (requestUrls.includes(joint as RequestUrl)) {
+		return joint as RequestUrl;
+	} else {
+		throw new Error(`${method} on ${url} not logged`)
+	}
+}
 
-type CommitContext<TableInfo> = {
+const requestUrls =[
+	"POST/user"
+	, "POST/info"
+	, "POST/infotwo"
+	, "PUT/info"
+	, "PUT/infotwo"
+	, "DELETE/info"
+	, "DELETE/infotwo"
+] as const;
+
+export type RequestUrl = typeof requestUrls[number];
+
+type CommitRequest<URL extends RequestUrl> = Omit<CommitContext<URL>, "commitId">;
+
+type CommitContext<URL extends RequestUrl> = {
+	url: URL,
 	commitId: number;
 	table: string;
 	user: string; // uuid
-	tableInfo: TableInfo;
+	tableInfo: TableInfoFromURL<URL>
 };
 
-async function genCommit<TableInfo>(req: CommitRequest<TableInfo>) { }
+type TableInfoFromURL<URL extends RequestUrl> = URL extends "POST:user" ?
+	{a: number} :
+	{b: string}
 
-async function genDiff<TableInfo>(ctx: CommitContext<TableInfo>) { }
+async function genCommit<URL extends RequestUrl, TableInfo=TableInfoFromURL<URL>>(req: CommitRequest<URL>) {
+	console.log(req);
+	const commitId = 0;
+	genDiff({...req, commitId});
+}
+
+async function genDiff<URL extends RequestUrl, TableInfo=TableInfoFromURL<URL>>(ctx: CommitContext<URL>) {
+}
