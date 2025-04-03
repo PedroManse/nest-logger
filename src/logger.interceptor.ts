@@ -16,8 +16,6 @@ export class LoggingInterceptor implements NestInterceptor {
 		console.log("Before req");
 		const now = Date.now();
 		function after() {
-			console.log(req);
-			console.log(rsp);
 			console.log(`After req | executed in ${Date.now() - now}`);
 		}
 

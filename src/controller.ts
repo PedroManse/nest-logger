@@ -1,45 +1,50 @@
-import { Controller, Get, Post, Put, Delete } from "@nestjs/common";
+import { Controller, Post, Put, Delete, Body } from "@nestjs/common";
 import { AppService } from "./service";
-import { Info, InfoTwo, User } from "@prisma/client";
+import { Info, InfoTwo, User as UserType } from "@prisma/client";
 import * as dto from "./dto";
+import { User } from "./user";
 
 @Controller()
 export class AppController {
-	constructor(private readonly appService: AppService) { }
+	constructor(private readonly service: AppService) { }
 
 	@Post("user")
-	createUser(user: dto.createUserDto): Promise<User> {
-		return this.appService.createUser(user);
+	createUser(@Body() user: dto.createUserDto): Promise<UserType> {
+		return this.service.createUser(user);
 	}
 
 	@Post("info")
-	createInfo(info: dto.createInfoDto): Promise<Info> {
-		return this.appService.createInfo(info);
+	createInfo(
+		@User("must") user: string,
+		@Body() info: dto.createInfoDto
+	): Promise<Info> {
+		console.log(user);
+		return this.service.createInfo(info, user);
 	}
 
 	@Post("infotwo")
-	createInfoTwo(info: dto.createInfoTwoDto): Promise<InfoTwo> {
-		return this.appService.createInfoTwo(info);
+	createInfoTwo(@Body() info: dto.createInfoTwoDto): Promise<InfoTwo> {
+		return this.service.createInfoTwo(info);
 	}
 
 	@Put("info")
-	updateInfo(info: dto.updateInfoDto): Promise<Info> {
-		return this.appService.updateInfo(info);
+	updateInfo(@Body() info: dto.updateInfoDto): Promise<Info> {
+		return this.service.updateInfo(info);
 	}
 
 	@Put("infotwo")
-	updateInfoTwo(info: dto.updateInfoTwoDto): Promise<InfoTwo> {
-		return this.appService.updateInfoTwo(info);
+	updateInfoTwo(@Body() info: dto.updateInfoTwoDto): Promise<InfoTwo> {
+		return this.service.updateInfoTwo(info);
 	}
 
 	@Delete("info")
-	deleteInfo(info: dto.deleteInfo): Promise<Info> {
-		return this.appService.deleteInfo(info)
+	deleteInfo(@Body() info: dto.deleteInfo): Promise<Info> {
+		return this.service.deleteInfo(info)
 	}
 
 	@Delete("infotwo")
-	deleteInfoTwo(info: dto.deleteInfoTwo): Promise<InfoTwo> {
-		return this.appService.deleteInfoTwo(info)
+	deleteInfoTwo(@Body() info: dto.deleteInfoTwo): Promise<InfoTwo> {
+		return this.service.deleteInfoTwo(info)
 	}
 }
 

@@ -10,9 +10,6 @@ export class createInfoDto {
 	@d.IsEnum(Status)
   status: Status;
 
-	@d.IsUUID()
-	ownerId: string
-
 	@d.IsNumber()
 	v1: number;
 
@@ -25,9 +22,6 @@ export class createInfoTwoDto {
   status: Status;
 
 	@d.IsUUID()
-	ownerId: string
-
-	@d.IsUUID()
 	attachedId: string
 }
 
@@ -38,10 +32,6 @@ export class updateInfoDto {
 	@d.IsOptional()
 	@d.IsEnum(Status)
   status: Status;
-
-	@d.IsOptional()
-	@d.IsUUID()
-	ownerId: string
 
 	@d.IsOptional()
 	@d.IsNumber()
@@ -59,10 +49,6 @@ export class updateInfoTwoDto {
 	@d.IsOptional()
 	@d.IsEnum(Status)
   status: Status;
-
-	@d.IsOptional()
-	@d.IsUUID()
-	ownerId: string
 
 	@d.IsOptional()
 	@d.IsUUID()

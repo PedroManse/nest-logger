@@ -16,7 +16,8 @@ export class AppService {
 	}
 
 	createInfo(
-		{ status, ownerId, v1, v2 }: dto.createInfoDto
+		{ status, v1, v2 }: dto.createInfoDto,
+		ownerId: string,
 	): Promise<Info> {
 		return this.prisma.info.create({
 			data: {
@@ -29,13 +30,12 @@ export class AppService {
 	}
 
 	updateInfo(
-		{ id, status, ownerId, v1, v2	}: dto.updateInfoDto
+		{ id, status, v1, v2 }: dto.updateInfoDto,
 	): Promise<Info> {
 		return this.prisma.info.update({
 			where: { id },
 			data: {
 				status,
-				ownerId,
 				v1,
 				v2,
 			}
@@ -44,7 +44,8 @@ export class AppService {
 	}
 
 	createInfoTwo(
-		{ status, ownerId, attachedId }: dto.createInfoTwoDto
+		{ status, attachedId }: dto.createInfoTwoDto,
+		ownerId: string,
 	): Promise<InfoTwo> {
 		return this.prisma.infoTwo.create({
 			data: {
@@ -56,13 +57,12 @@ export class AppService {
 	}
 
 	updateInfoTwo(
-		{ id, status, ownerId, attachedId }: dto.updateInfoTwoDto
+		{ id, status, attachedId }: dto.updateInfoTwoDto
 	): Promise<InfoTwo> {
 		return this.prisma.infoTwo.update({
 			where: {id},
 			data: {
 				status,
-				ownerId,
 				attachedId,
 			}
 		})
