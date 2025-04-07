@@ -30,22 +30,34 @@ export class AppController {
 	}
 
 	@Put("info")
-	updateInfo(@Body() info: dto.updateInfoDto): Promise<Info> {
+	updateInfo(
+		@User("must") user: string,
+		@Body() info: dto.updateInfoDto
+	): Promise<Info> {
 		return this.service.updateInfo(info);
 	}
 
 	@Put("infotwo")
-	updateInfoTwo(@Body() info: dto.updateInfoTwoDto): Promise<InfoTwo> {
+	updateInfoTwo(
+		@User("must") user: string,
+		@Body() info: dto.updateInfoTwoDto,
+	): Promise<InfoTwo> {
 		return this.service.updateInfoTwo(info);
 	}
 
 	@Delete("info")
-	deleteInfo(@Body() info: dto.deleteInfo): Promise<Info> {
+	deleteInfo(
+		@User("must") user: string,
+		@Body() info: dto.deleteInfo
+	): Promise<Info> {
 		return this.service.deleteInfo(info)
 	}
 
 	@Delete("infotwo")
-	deleteInfoTwo(@Body() info: dto.deleteInfoTwo): Promise<InfoTwo> {
+	deleteInfoTwo(
+		@User("must") user: string,
+		@Body() info: dto.deleteInfoTwo,
+	): Promise<InfoTwo> {
 		return this.service.deleteInfoTwo(info)
 	}
 }

@@ -8,36 +8,47 @@ import { Response } from "express";
 import { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
 import { Req } from "./user";
-import { throws } from "assert";
+import { Omit, Record } from "@prisma/client/runtime/library";
+import { Info, InfoTwo } from "@prisma/client"
+import { PrismaService } from "./prisma";
+export { Req };
+import * as info from "./logger/info";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+	constructor(private readonly prisma: PrismaService) { }
+
+	async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+
 		const req: Req = context.switchToHttp().getRequest();
+		const userId = req.headers["authorization"];
 		const requrl = makeReqUrl(req.url, req.method);
-		console.log(requrl);
-		const _: Response = context.switchToHttp().getResponse();
-		console.log("Before req");
-		console.log(`By: ${req.user}`);
-		const now = Date.now();
-		function after() {
-			console.log(`After req | executed in ${Date.now() - now}`);
+		if (requrl === null) {
+			return next.handle();
 		}
 
+		const [before_commit, after_commit] = delegateUrls[requrl];
+		const ctx = await before_commit({req, url: requrl, userId }, this.prisma);
+		async function after() {
+			const rsp: Response = context.switchToHttp().getResponse();
+			await after_commit({...ctx, rsp}, this.prisma);
+		}
 		return next.handle().pipe(tap({ next: after }));
 	}
 }
 
-function makeReqUrl(url: string, method: string): RequestUrl {
+//TODO: match url to regex on loggedRequestUrls
+function makeReqUrl(url: string, method: string): RequestUrl | null {
 	const joint = `${method}${url}`;
-	if (requestUrls.includes(joint as RequestUrl)) {
+	if (loggedRequestUrls.includes(joint as RequestUrl)) {
 		return joint as RequestUrl;
 	} else {
-		throw new Error(`${method} on ${url} not logged`)
+		return null;
 	}
 }
 
-const requestUrls =[
+//TODO make into regex-able strings
+export const loggedRequestUrls = [
 	"POST/user"
 	, "POST/info"
 	, "POST/infotwo"
@@ -46,28 +57,57 @@ const requestUrls =[
 	, "DELETE/info"
 	, "DELETE/infotwo"
 ] as const;
+export type RequestUrl = typeof loggedRequestUrls[number];
 
-export type RequestUrl = typeof requestUrls[number];
+const delegateUrls: Record<RequestUrl, [CommitFuncBefore<RequestUrl>, CommitFuncAfter<RequestUrl>]> = {
+	"POST/user": [commit_before, post_user_commit],
 
-type CommitRequest<URL extends RequestUrl> = Omit<CommitContext<URL>, "commitId">;
+	"POST/info": [commit_before, commit_after],
+	"PUT/info": [info.put.before, info.put.after],
+	"DELETE/info": [commit_before, commit_after],
 
-type CommitContext<URL extends RequestUrl> = {
-	url: URL,
-	commitId: number;
-	table: string;
-	user: string; // uuid
-	tableInfo: TableInfoFromURL<URL>
-};
-
-type TableInfoFromURL<URL extends RequestUrl> = URL extends "POST:user" ?
-	{a: number} :
-	{b: string}
-
-async function genCommit<URL extends RequestUrl, TableInfo=TableInfoFromURL<URL>>(req: CommitRequest<URL>) {
-	console.log(req);
-	const commitId = 0;
-	genDiff({...req, commitId});
+	"POST/infotwo": [commit_before, commit_after],
+	"PUT/infotwo": [commit_before, commit_after],
+	"DELETE/infotwo": [commit_before, commit_after],
 }
 
-async function genDiff<URL extends RequestUrl, TableInfo=TableInfoFromURL<URL>>(ctx: CommitContext<URL>) {
+// initiate commit
+type CommitFuncBefore<URL extends RequestUrl> = (ctx: BeforeCommit<URL>, prisma: PrismaService) => Promise<DuringCommit<URL>>;
+// finalize commit
+type CommitFuncAfter<URL extends RequestUrl> = (ctx: FinishCommit<URL>, prisma: PrismaService) => Promise<void>;
+
+export type BeforeCommit<URL extends RequestUrl> = {
+	req: Req,
+	url: URL,
+	userId: string | undefined,
+};
+
+export type DuringCommit<URL extends RequestUrl, TableInfo = TableInfoFromURL<URL>> = BeforeCommit<URL> & {
+	commitId: number,
+	commitInfo: TableInfo,
+}
+
+export type FinishCommit<URL extends RequestUrl> = DuringCommit<URL> & { rsp: Response };
+
+type TableInfoFromURL<URL extends RequestUrl> = {
+	[info.put.commitURL]: info.put.commitInfo,
+	"POST/user": null,
+	"POST/info": null,
+	"POST/infotwo": null,
+	"PUT/infotwo": InfoTwo,
+	"DELETE/info": Info,
+	"DELETE/infotwo": InfoTwo,
+}[URL];
+
+async function commit_before(ctx: BeforeCommit<"POST/user" | "POST/info" | "POST/infotwo">): Promise<DuringCommit<"POST/user" | "POST/info" | "POST/infotwo">> {
+	console.log("before", ctx.url);
+	return { ...ctx, commitId: 0, commitInfo: null }
+}
+
+async function commit_after(ctx: FinishCommit<Omit<RequestUrl, "POST/user">>): Promise<void> {
+	console.log("after", ctx.url);
+}
+
+async function post_user_commit(ctx: FinishCommit<"POST/user">, _prisma: PrismaService): Promise<void> {
+	console.log(ctx.userId)
 }
