@@ -54,15 +54,15 @@ function makeReqUrl(url: string, method: string): RequestUrl | null {
 	} else if (comp.length === 0) {
 		return null;
 	}
+
 	// comp[idx]'s param Count = paramCount[idx] 
 	const paramCount: number[] = comp.map(r => r.split("/").reduce((a, b) => a + (+b.startsWith(':')), 0))
-	// sort compatible
-	comp.map((val, idx) => ({ val, idx })).sort((a, b) => {
+
+	// sort compatible URLs by param count
+	const sorted = comp.map((route, idx) => ({ route, idx })).sort((a, b) => {
 		return paramCount[a.idx] - paramCount[b.idx]
-	}).map(
-		({ val }) => val
-	)
-	return comp[0];
+	})
+	return sorted[0].route;
 }
 
 export const loggedRequestUrls = [
