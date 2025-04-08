@@ -39,12 +39,22 @@ export class LoggingInterceptor implements NestInterceptor {
 
 //TODO: match each component of the url, matching anything against component with : prefix
 function makeReqUrl(url: string, method: string): RequestUrl | null {
-	const joint = `${method}${url}`;
-	if (loggedRequestUrls.includes(joint as RequestUrl)) {
-		return joint as RequestUrl;
+	const joint = (method+url).split("/");
+	const comp = loggedSplitReqs.map((rq, idx)=>{
+		if (rq.filter((p, i)=>{
+			return joint[i] === p || p.startsWith(":")
+		}).length === rq.length) {
+			return loggedRequestUrls[idx]
+		}
+			return null
+	}).filter(a=>a!==null);
+	if (comp.length === 1) {
+		return comp[1];
 	} else {
-		return null;
+
 	}
+	console.log(joint, comp)
+	return null;
 }
 
 //TODO make into regex-able strings
@@ -52,18 +62,19 @@ export const loggedRequestUrls = [
 	"POST/user"
 	, "POST/info"
 	, "POST/infotwo"
-	, "PUT/info"
+	, "PUT/info/:id"
 	, "PUT/infotwo"
 	, "DELETE/info"
 	, "DELETE/infotwo"
 ] as const;
+const loggedSplitReqs = loggedRequestUrls.map(rq=>rq.split("/"));
 export type RequestUrl = typeof loggedRequestUrls[number];
 
 const delegateUrls: Record<RequestUrl, [CommitFuncBefore<RequestUrl>, CommitFuncAfter<RequestUrl>]> = {
 	"POST/user": [commit_before, post_user_commit],
 
 	"POST/info": [commit_before, commit_after],
-	"PUT/info": [info.put.before, info.put.after],
+	"PUT/info/:id": [info.put.before, info.put.after],
 	"DELETE/info": [commit_before, commit_after],
 
 	"POST/infotwo": [commit_before, commit_after],

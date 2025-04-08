@@ -30,7 +30,8 @@ export class AppService {
 	}
 
 	updateInfo(
-		{ id, status, v1, v2 }: dto.updateInfoDto,
+		{ status, v1, v2 }: dto.updateInfoDto,
+		id: string,
 	): Promise<Info> {
 		return this.prisma.info.update({
 			where: { id },

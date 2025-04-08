@@ -3,7 +3,7 @@ import { PrismaService } from "src/prisma"
 import { DiffType, Info } from "@prisma/client"
 import { updateInfoDto } from "src/dto";
 
-export const commitURL = "PUT/info";
+export const commitURL = "PUT/info/:id";
 export type CommitURL = typeof commitURL;
 export type commitInfo = Info;
 

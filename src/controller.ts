@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Delete, Body } from "@nestjs/common";
+import { Controller, Post, Put, Delete, Body, Param } from "@nestjs/common";
 import { AppService } from "./service";
 import { Info, InfoTwo, User as UserType } from "@prisma/client";
 import * as dto from "./dto";
@@ -29,12 +29,13 @@ export class AppController {
 		return this.service.createInfoTwo(info, user);
 	}
 
-	@Put("info")
+	@Put("info/:id")
 	updateInfo(
-		@User("must") user: string,
+		@User("must") _user: string,
+		@Param("id") id: string,
 		@Body() info: dto.updateInfoDto
 	): Promise<Info> {
-		return this.service.updateInfo(info);
+		return this.service.updateInfo(info, id);
 	}
 
 	@Put("infotwo")
