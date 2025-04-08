@@ -28,36 +28,43 @@ export class LoggingInterceptor implements NestInterceptor {
 		}
 
 		const [before_commit, after_commit] = delegateUrls[requrl];
-		const ctx = await before_commit({req, url: requrl, userId }, this.prisma);
+		const ctx = await before_commit({ req, url: requrl, userId }, this.prisma);
 		async function after() {
 			const rsp: Response = context.switchToHttp().getResponse();
-			await after_commit({...ctx, rsp}, this.prisma);
+			await after_commit({ ...ctx, rsp }, this.prisma);
 		}
 		return next.handle().pipe(tap({ next: after.bind(this) }));
 	}
 }
 
-//TODO: match each component of the url, matching anything against component with : prefix
 function makeReqUrl(url: string, method: string): RequestUrl | null {
-	const joint = (method+url).split("/");
-	const comp = loggedSplitReqs.map((rq, idx)=>{
-		if (rq.filter((p, i)=>{
+	const joint = (method + url).split("/");
+	// get compatible URLs based on path part and URL param (':' prefix)
+	const comp = loggedSplitReqs.map((rq, idx) => {
+		if (rq.filter((p, i) => {
 			return joint[i] === p || p.startsWith(":")
 		}).length === rq.length) {
 			return loggedRequestUrls[idx]
 		}
-			return null
-	}).filter(a=>a!==null);
-	if (comp.length === 1) {
-		return comp[1];
-	} else {
+		return null
+	}).filter(a => a !== null);
 
+	if (comp.length === 1) {
+		return comp[0];
+	} else if (comp.length === 0) {
+		return null;
 	}
-	console.log(joint, comp)
-	return null;
+	// comp[idx]'s param Count = paramCount[idx] 
+	const paramCount: number[] = comp.map(r => r.split("/").reduce((a, b) => a + (+b.startsWith(':')), 0))
+	// sort compatible
+	comp.map((val, idx) => ({ val, idx })).sort((a, b) => {
+		return paramCount[a.idx] - paramCount[b.idx]
+	}).map(
+		({ val }) => val
+	)
+	return comp[0];
 }
 
-//TODO make into regex-able strings
 export const loggedRequestUrls = [
 	"POST/user"
 	, "POST/info"
@@ -67,7 +74,7 @@ export const loggedRequestUrls = [
 	, "DELETE/info"
 	, "DELETE/infotwo"
 ] as const;
-const loggedSplitReqs = loggedRequestUrls.map(rq=>rq.split("/"));
+const loggedSplitReqs = loggedRequestUrls.map(rq => rq.split("/"));
 export type RequestUrl = typeof loggedRequestUrls[number];
 
 const delegateUrls: Record<RequestUrl, [CommitFuncBefore<RequestUrl>, CommitFuncAfter<RequestUrl>]> = {
