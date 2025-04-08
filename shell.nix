@@ -2,7 +2,7 @@
 
 pkgs.mkShellNoCC {
 	buildInputs = with pkgs; [
-		nodejs
+		nodejs_23
 		openssl
 		nodePackages_latest.prisma
 	];
