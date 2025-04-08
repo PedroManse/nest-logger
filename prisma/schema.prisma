@@ -50,10 +50,11 @@ model InfoTwo {
 }
 
 model LogCommit {
-  id             Int       @id
+  id             Int       @id @default(autoincrement())
   createdAt      DateTime  @default(now())
   diffs          LogDiff[]
-  modifiedEntity String
+  table String
+  diffType DiffType
 
   owner   User   @relation(fields: [ownerId], references: [id])
   ownerId String
@@ -66,12 +67,10 @@ enum DiffType {
 }
 
 model LogDiff {
-  id       Int      @id
-  table    String
+  id       Int      @id @default(autoincrement())
   column   String
   was      String?
   is       String?
-  diffType DiffType
 
   commit   LogCommit @relation(fields: [commitId], references: [id])
   commitId Int
