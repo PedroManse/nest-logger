@@ -33,11 +33,11 @@ export class LoggingInterceptor implements NestInterceptor {
 			const rsp: Response = context.switchToHttp().getResponse();
 			await after_commit({...ctx, rsp}, this.prisma);
 		}
-		return next.handle().pipe(tap({ next: after }));
+		return next.handle().pipe(tap({ next: after.bind(this) }));
 	}
 }
 
-//TODO: match url to regex on loggedRequestUrls
+//TODO: match each component of the url, matching anything against component with : prefix
 function makeReqUrl(url: string, method: string): RequestUrl | null {
 	const joint = `${method}${url}`;
 	if (loggedRequestUrls.includes(joint as RequestUrl)) {
