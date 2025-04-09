@@ -20,7 +20,7 @@ export class LoggingInterceptor implements NestInterceptor {
 			const {method, url, query, params, body, user}: Req = context.switchToHttp().getRequest();
 			const rsp: Response = context.switchToHttp().getResponse();
 
-			prisma.log.create({
+			await prisma.log.create({
 				data: {
 					service:"Teste",
 					method,
@@ -35,3 +35,4 @@ export class LoggingInterceptor implements NestInterceptor {
 		return next.handle().pipe(tap({ next: ()=>after(this.prisma) }));
 	}
 }
+
