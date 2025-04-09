@@ -21,11 +21,11 @@ enum Status {
 }
 
 model User {
-  id      String      @id @default(uuid())
-  name    String      @unique
-  Changes LogCommit[]
+  id      String    @id @default(uuid())
+  name    String    @unique
   Info    Info[]
   InfoTwo InfoTwo[]
+  Log     Log[]
 }
 
 model Info {
@@ -49,29 +49,17 @@ model InfoTwo {
   attachedId String
 }
 
-model LogCommit {
-  id             Int       @id @default(autoincrement())
-  createdAt      DateTime  @default(now())
-  diffs          LogDiff[]
-  table String
-  diffType DiffType
+model Log {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
 
-  owner   User   @relation(fields: [ownerId], references: [id])
-  ownerId String
-}
+  service     String
+  method      String
+  url         String
+  queryParams Json?
+  urlParams   Json?
+  body        Json?
 
-enum DiffType {
-  create
-  update
-  delete
-}
-
-model LogDiff {
-  id       Int      @id @default(autoincrement())
-  column   String
-  was      String?
-  is       String?
-
-  commit   LogCommit @relation(fields: [commitId], references: [id])
-  commitId Int
+  owner   User?   @relation(fields: [ownerId], references: [id])
+  ownerId String?
 }
