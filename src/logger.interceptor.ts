@@ -23,7 +23,7 @@ export class LoggingInterceptor implements NestInterceptor {
 		const req: Req = context.switchToHttp().getRequest();
 		const userId = req.headers["authorization"];
 		const requrl = makeReqUrl(req.url, req.method);
-		if (requrl === null) {
+		if (requrl === undefined) {
 			return next.handle();
 		}
 
@@ -37,32 +37,23 @@ export class LoggingInterceptor implements NestInterceptor {
 	}
 }
 
-function makeReqUrl(url: string, method: string): RequestUrl | null {
-	const joint = (method + url).split("/");
-	// get compatible URLs based on path part and URL param (':' prefix)
-	const comp = loggedSplitReqs.map((rq, idx) => {
-		if (rq.filter((p, i) => {
-			return joint[i] === p || p.startsWith(":")
-		}).length === rq.length) {
-			return loggedRequestUrls[idx]
-		}
-		return null
-	}).filter(a => a !== null);
+function makeReqUrl(url: string, method: string): RequestUrl | undefined {
+	const parts = (method + url).split("/");
+	const compatibleRoutes = loggedSplitReqs.filter((rqs) =>
+		rqs.parts.filter((part, i) =>
+			parts[i] === part
+		).length === rqs.parts.length
+	);
 
-	if (comp.length === 1) {
-		return comp[0];
-	} else if (comp.length === 0) {
-		return null;
+	// either one or zero routes found
+	if (compatibleRoutes.length <= 1) {
+		return compatibleRoutes[0]?.joint;
 	}
 
-	// comp[idx]'s param Count = paramCount[idx] 
-	const paramCount: number[] = comp.map(r => r.split("/").reduce((a, b) => a + (+b.startsWith(':')), 0))
-
-	// sort compatible URLs by param count
-	const sorted = comp.map((route, idx) => ({ route, idx })).sort((a, b) => {
-		return paramCount[a.idx] - paramCount[b.idx]
+	const sorted = compatibleRoutes.sort((a, b) => {
+		return a.paramCount - b.paramCount
 	})
-	return sorted[0].route;
+	return sorted[0].joint;
 }
 
 export const loggedRequestUrls = [
@@ -74,7 +65,13 @@ export const loggedRequestUrls = [
 	, "DELETE/info"
 	, "DELETE/infotwo"
 ] as const;
-const loggedSplitReqs = loggedRequestUrls.map(rq => rq.split("/"));
+
+const loggedSplitReqs = loggedRequestUrls.map(joint => {
+	const parts = joint.split("/");
+	const paramCount = parts.reduce((a, b) => a + (+b.startsWith(':')), 0);
+	return {parts, paramCount, joint};
+});
+
 export type RequestUrl = typeof loggedRequestUrls[number];
 
 const delegateUrls: Record<RequestUrl, [CommitFuncBefore<RequestUrl>, CommitFuncAfter<RequestUrl>]> = {
